@@ -1,0 +1,57 @@
+using System.Collections.Generic;
+
+namespace LHPets
+{
+    public class Banco
+    {
+        // Lista de clientes como atributo
+        public List<string> Clientes { get; set; }
+
+        public Banco()
+        {
+            // Exemplo de clientes fictícios
+            Clientes = new List<string>
+            {
+                "Maria Silva",
+                "João Souza",
+                "Carla Oliveira",
+                "Pedro Santos"
+            };
+        }
+    }
+}
+using LHPets;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+// Instância do banco fictício
+Banco banco = new Banco();
+
+// Rota raiz "/"
+app.MapGet("/", () => "LH Pets - Protótipo 1");
+
+// Rota "/index" → retorna o arquivo index.html
+app.MapGet("/index", async context =>
+{
+    var html = await System.IO.File.ReadAllTextAsync("index.html");
+    await context.Response.WriteAsync(html);
+});
+
+// Rota "/listaClientes" → retorna lista de clientes
+app.MapGet("/listaClientes", () =>
+{
+    return banco.Clientes;
+});
+
+app.Run();
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LH Pets</title>
+</head>
+<body>
+    <h1>Bem-vindo ao LH Pets!</h1>
+    <p>Este é o protótipo inicial.</p>
+</body>
+</html>

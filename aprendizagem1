@@ -1,0 +1,135 @@
+public abstract class Cliente
+{
+    public string Nome { get; set; }
+    public abstract void PagarImposto();
+    public abstract string ObterDados();
+}
+
+public class PessoaFisica : Cliente
+{
+    public string CPF { get; set; }
+    public DateTime DataNascimento { get; set; }
+
+    public override void PagarImposto()
+    {
+        Console.WriteLine($"{Nome} (CPF: {CPF}) pagou o imposto.");
+    }
+
+    public override string ObterDados()
+    {
+        return $"Pessoa Física: {Nome}, CPF: {CPF}, Nascimento: {DataNascimento:dd/MM/yyyy}";
+    }
+}
+public class PessoaJuridica : Cliente
+{
+    public string CNPJ { get; set; }
+
+    public override void PagarImposto()
+    {
+        Console.WriteLine($"{Nome} (CNPJ: {CNPJ}) pagou o imposto.");
+    }
+
+    public override string ObterDados()
+    {
+        return $"Pessoa Jurídica: {Nome}, CNPJ: {CNPJ}";
+    }
+}
+using System.IO;
+
+public static class Armazenamento
+{
+    private const string CaminhoArquivo = "clientes.txt";
+
+    public static void SalvarCliente(Cliente cliente)
+    {
+        using (StreamWriter sw = File.AppendText(CaminhoArquivo))
+        {
+            sw.WriteLine(cliente.ObterDados());
+        }
+    }
+
+    public static void ListarClientes()
+    {
+        if (File.Exists(CaminhoArquivo))
+        {
+            string[] linhas = File.ReadAllLines(CaminhoArquivo);
+            foreach (string linha in linhas)
+            {
+                Console.WriteLine(linha);
+            }
+        }
+        else
+        {
+            Console.WriteLine("Nenhum cliente cadastrado ainda.");
+        }
+    }
+}
+public static class Validador
+{
+    public static bool ValidarCPF(string cpf)
+    {
+        return cpf.Length == 11 && cpf.All(char.IsDigit);
+    }
+
+    public static bool ValidarCNPJ(string cnpj)
+    {
+        return cnpj.Length == 14 && cnpj.All(char.IsDigit);
+    }
+}
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        while (true)
+        {
+            Console.WriteLine("\n1. Cadastrar Pessoa Física");
+            Console.WriteLine("2. Cadastrar Pessoa Jurídica");
+            Console.WriteLine("3. Listar Clientes");
+            Console.WriteLine("4. Sair");
+            Console.Write("Escolha uma opção: ");
+            string opcao = Console.ReadLine();
+
+            switch (opcao)
+            {
+                case "1":
+                    var pf = new PessoaFisica();
+                    Console.Write("Nome: ");
+                    pf.Nome = Console.ReadLine();
+                    Console.Write("CPF (11 dígitos): ");
+                    string cpf = Console.ReadLine();
+                    if (!Validador.ValidarCPF(cpf)) { Console.WriteLine("CPF inválido."); break; }
+                    pf.CPF = cpf;
+                    Console.Write("Data de Nascimento (dd/mm/aaaa): ");
+                    pf.DataNascimento = DateTime.Parse(Console.ReadLine());
+                    pf.PagarImposto();
+                    Armazenamento.SalvarCliente(pf);
+                    break;
+
+                case "2":
+                    var pj = new PessoaJuridica();
+                    Console.Write("Nome: ");
+                    pj.Nome = Console.ReadLine();
+                    Console.Write("CNPJ (14 dígitos): ");
+                    string cnpj = Console.ReadLine();
+                    if (!Validador.ValidarCNPJ(cnpj)) { Console.WriteLine("CNPJ inválido."); break; }
+                    pj.CNPJ = cnpj;
+                    pj.PagarImposto();
+                    Armazenamento.SalvarCliente(pj);
+                    break;
+
+                case "3":
+                    Armazenamento.ListarClientes();
+                    break;
+
+                case "4":
+                    return;
+
+                default:
+                    Console.WriteLine("Opção inválida.");
+                    break;
+            }
+        }
+    }
+}
